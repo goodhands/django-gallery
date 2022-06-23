@@ -1,0 +1,9 @@
+{% if recent_photos_list %}
+    <ul>
+    {% for photo in recent_photos_list %}
+        <li><a href="{% url 'gallery:show' photo.id %}">{{ photo.title }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No photos are available.</p>
+{% endif %}
