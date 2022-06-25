@@ -2,3 +2,19 @@
     {{ photo.title }}
 </h2>
 <img src="{{ photo.path }}" alt="" srcset="" height="500">
+
+<!-- Leave a comment -->
+<form action="{% url 'gallery:show' photo.id %}" method="post">
+    {% csrf_token %}
+    <h2>Leave a comment (be nice)</h2>
+    {% if error_message %}
+        <strong>{{ error_message }}</strong>
+    {% endif %}
+
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name">
+    <label for="comment">Comment:</label>
+    <textarea name="comment" id="comment" cols="30" rows="10"></textarea>
+
+    <input type="submit" value="Vote">
+</form>

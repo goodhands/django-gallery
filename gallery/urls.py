@@ -10,5 +10,5 @@ urlpatterns = [
     # /gallery/id
     path('<int:photo_id>/', views.show, name='show'),
     # /gallery/user/name
-    path('user/<str:name>/', views.user, name='user.show'),
+    path('user/<str:name>/', views.user, name='author'),
 ]
