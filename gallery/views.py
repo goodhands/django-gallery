@@ -1,26 +1,41 @@
 # Create your views here.
-from django.http import HttpResponse
+from django.urls import reverse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.views import generic
 
-from .models import Photo
+from .models import Comment, Photo
 
+class IndexView(generic.ListView):
+    template_name = 'gallery/index.html'
+    context_object_name = 'recent_photos_list'
 
-def index(request):
-    photo = Photo()
-    
-    recent_photos_list = photo.recent()[:5]
+    def get_queryset(self):
+        """"Return the last five published photos"""
+        photo = Photo()
+        return photo.recent()[:5]
 
-    context = {
-        'recent_photos_list': recent_photos_list
-    }
+class SingleView(generic.DetailView):
+    model = Photo
+    template_name = 'gallery/single.html'
 
-    return render(request, 'gallery/index.html', context)
+class AuthorView(generic.DetailView):
+    model = Photo
+    template_name = 'gallery/author.html'
 
-def show(request, photo_id):
+def comment(request, photo_id):
     photo = get_object_or_404(Photo, pk=photo_id)
-    return render(request, 'gallery/single.html', {'photo': photo})
 
-def user(request, name):
-    response = "You're looking at user %s photos"
+    try:
+        author = request.POST['author']
+        comment = request.POST['comment']
+    except KeyError:
+        return render(request, 'gallery/single.html', {
+            'photo': photo,
+            'error_message': 'You must enter your name and comment'
+        })
+    else:
+        c = Comment(author=author, comment=comment, photo=photo)
+        c.save()
 
-    return HttpResponse(response % name)
+        return HttpResponseRedirect(reverse('gallery:show', args=(photo.id,)))

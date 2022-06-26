@@ -25,3 +25,7 @@ class Comment(models.Model):
     author = models.CharField('author', max_length=100)
     comment = models.TextField('comment', max_length=1000)
     photo = models.ForeignKey(Photo, on_delete=models.CASCADE)
+
+    # Return string representation of this model 
+    def __str__(self) -> str:
+        return self.comment
