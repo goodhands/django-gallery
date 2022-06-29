@@ -21,6 +21,10 @@ class Photo(models.Model):
         year = timezone.now().year
         return Photo.objects.filter(created_at__year=year).order_by('-created_at')
 
+    def was_published_recently(self):
+        now = timezone.now()
+        return now - datetime.timedelta(days=1) <= self.created_at <= now
+
 class Comment(models.Model):
     author = models.CharField('author', max_length=100)
     comment = models.TextField('comment', max_length=1000)
