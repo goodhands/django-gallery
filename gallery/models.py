@@ -4,14 +4,14 @@ from django.db import models
 
 # Create your models here.
 class Photo(models.Model):
-    title = models.CharField('title', max_length=200)
-    path = models.CharField('path', max_length=500)
+    title = models.CharField('title', max_length=200, null=True)
+    path = models.CharField('path', max_length=500, null=True)
     # name of the photographer, not the authed user
-    name_of_creator = models.CharField('creator', max_length=200)
-    date_taken = models.DateTimeField('date taken')
-    description = models.TextField('description', max_length=1000)
-    update_at = models.DateTimeField('updated date', null=True)
-    created_at = models.DateTimeField('created date', null=True)
+    name_of_creator = models.CharField('creator', max_length=200, null=True)
+    date_taken = models.DateField('date taken', null=True)
+    description = models.TextField('description', max_length=1000, null=True)
+    update_at = models.DateField('updated date', null=True)
+    created_at = models.DateField('created date', null=True)
 
     # Return string representation of this model 
     def __str__(self) -> str:
