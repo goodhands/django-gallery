@@ -2,11 +2,72 @@ import datetime
 
 from django.test import TestCase
 from django.utils import timezone
+from django.urls import reverse
 
 from .models import Comment, Photo
 
+def create_photo(title, dayAgo):
+    """
+    Create a photo with a given title and the dayAgo offset.
+    Postive for future photos and negative for past photos
+    """
+    time = timezone.now() + datetime.timedelta(days=dayAgo)
+
+    return Photo.objects.create(title=title, created_at=time)
 
 class PhotoModelTests(TestCase):
+    def test_no_photos(self):
+        """
+        If no photos exist, display the right message
+        """
+        response = self.client.get(reverse('gallery:index'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No photos are available.")
+        self.assertQuerysetEqual(response.context['recent_photos_list'], [])
+
+    def test_past_photo(self):
+        """
+        If the photo was created in the past, it should show up
+        """
+        photo = create_photo("Welcome to the digital age", -100)
+        response = self.client.get(reverse('gallery:index'))
+
+        self.assertQuerysetEqual(response.context['recent_photos_list'], [photo])
+
+    def test_future_photo(self):
+        """
+        If the future's date is a future date, it shouldn't show up
+        """
+        create_photo("The professor", 32)
+        response = self.client.get(reverse('gallery:index'))
+
+        self.assertContains(response, "No photos are available")
+        self.assertQuerysetEqual(response.context['recent_photos_list'], [])
+
+    def test_and_future_photos(self):
+        """
+        If there are future photos as well as past photos, only show the past photos
+        """
+        p_photo = create_photo("The night is long", -90)
+        f_photo = create_photo("Flying cars", 180)
+
+        response = self.client.get(reverse('gallery:index'))
+
+        self.assertQuerysetEqual(response.context['recent_photos_list'], [p_photo])
+
+    def test_multiple_photos_can_be_created(self):
+        """
+        We can publish more than 2 photos in the past and see them on the
+        index page
+        """
+        first_photo = create_photo("Monalisa XXVII", -1)
+        second_photo = create_photo("Monalisa XXXII", -1)
+
+        response = self.client.get(reverse('gallery:index'))
+
+        self.assertQuerysetEqual(response.context['recent_photos_list'], [first_photo, second_photo])
+        self.assertEqual(response.status_code, 200)
 
     def test_was_published_recently_with_future_photo(self):
         """
@@ -42,3 +103,25 @@ class PhotoModelTests(TestCase):
         self.assertEqual(len(photo.comment_set.all()), 2)
 
         self.assertIsInstance(comment.photo, Photo)
+
+
+class PhotoDetailViewTest(TestCase):
+    def test_future_photo(self):
+        """
+        The detail view of a photo with a pub_date in the future
+        returns a 404 not found.
+        """
+        future_photo = create_photo(title='Future photo.', dayAgo=5)
+        url = reverse('gallery:show', args=(future_photo.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_past_photo(self):
+        """
+        The detail view of a photo with a pub_date in the past
+        displays the photo's text.
+        """
+        past_photo = create_photo(title='Past photo.', dayAgo=-5)
+        url = reverse('gallery:show', args=(past_photo.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_photo.title)
