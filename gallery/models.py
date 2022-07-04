@@ -1,6 +1,7 @@
 import datetime
 from django.utils import timezone
 from django.db import models
+from django.contrib import admin
 
 # Create your models here.
 class Photo(models.Model):
@@ -21,9 +22,14 @@ class Photo(models.Model):
         year = timezone.now().year
         return Photo.objects.filter(created_at__year=year).order_by('-created_at')
 
+    @admin.display(
+        boolean=True,
+        ordering='created_at',
+        description='Published recently?'
+    )
     def was_published_recently(self):
         now = timezone.now()
-        return now - datetime.timedelta(days=1) <= self.created_at <= now
+        return datetime.date(year=now.year, month=now.month, day=now.day) <= self.created_at <= now
 
 class Comment(models.Model):
     author = models.CharField('author', max_length=100)

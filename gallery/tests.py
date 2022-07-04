@@ -103,3 +103,25 @@ class PhotoModelTests(TestCase):
         self.assertEqual(len(photo.comment_set.all()), 2)
 
         self.assertIsInstance(comment.photo, Photo)
+
+
+class PhotoDetailViewTest(TestCase):
+    def test_future_photo(self):
+        """
+        The detail view of a photo with a pub_date in the future
+        returns a 404 not found.
+        """
+        future_photo = create_photo(title='Future photo.', dayAgo=5)
+        url = reverse('gallery:show', args=(future_photo.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_past_photo(self):
+        """
+        The detail view of a photo with a pub_date in the past
+        displays the photo's text.
+        """
+        past_photo = create_photo(title='Past photo.', dayAgo=-5)
+        url = reverse('gallery:show', args=(past_photo.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_photo.title)

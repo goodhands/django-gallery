@@ -21,6 +21,12 @@ class IndexView(generic.ListView):
 class SingleView(generic.DetailView):
     model = Photo
     template_name = 'gallery/single.html'
+    
+    def get_queryset(self):
+        """
+        Excludes any photos that aren't published yet.
+        """
+        return Photo.objects.filter(created_at__lte=timezone.now())
 
 class AuthorView(generic.DetailView):
     model = Photo
